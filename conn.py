@@ -7,7 +7,7 @@ class MySQLDatabase:
     def __init__(self):
         """Initialize database connection settings."""
         
-        """
+        
         self.host = "localhost"
         self.user = "root"
         self.password = "pass"
@@ -24,6 +24,8 @@ class MySQLDatabase:
         self.database = "colorlabels"
         self.conn = None
         self.cursor = None
+        
+        """
 
     def connect(self):
         """Establish a connection to the database."""
@@ -144,8 +146,18 @@ class MySQLDatabase:
         self.connect()
         if not self.conn:
             return pd.DataFrame() 
-        
+            
         query = "SELECT * FROM purchase_report;"
         data = pd.read_sql(query, self.conn)
+
+        # Fix PO Date if it's a corrupted or dirty VARCHAR column
+        if 'PO Date' in data.columns:
+            data['PO Date'] = (
+                data['PO Date']
+                .astype(str)
+                .str.strip()
+                .str.extract(r'(\d{4}-\d{2}-\d{2})')[0]  # extract valid YYYY-MM-DD only
+            )
+            data['PO Date'] = pd.to_datetime(data['PO Date'], errors='coerce')
 
         return data

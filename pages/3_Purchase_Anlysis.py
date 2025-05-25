@@ -11,6 +11,10 @@ db = MySQLDatabase()
 
 # Load Data
 purchase_data = db.load_purchase_data()
+purchase_data['PO Date'] = pd.to_datetime(purchase_data['PO Date'], format='%d-%m-%Y', errors='coerce')
+
+
+
 
 # Data Cleaning: Convert Columns to Appropriate Data Types
 # Handle missing values, remove commas, and ensure numeric columns
@@ -57,34 +61,46 @@ try:
 except Exception as e:
     st.error(f"Error calculating KPIs: {e}")
 
-# Purchase Trend
+
+
 st.header("Purchase Trends Over Time")
+
 if not filtered_data.empty:
     try:
-        trend_data = filtered_data.groupby('PO Date')['Amount'].sum().reset_index()
-        fig = px.line(trend_data, x='PO Date', y='Amount', title="Purchase Amount Over Time")
+        # Step 1: Print raw PO Date values before conversion
+       
+
+        # Step 2: Strip any spaces and convert PO Date from string to datetime
+        filtered_data['PO Date'] = (
+            filtered_data['PO Date'].astype(str).str.strip()
+        )
+        filtered_data['PO Date'] = pd.to_datetime(
+            filtered_data['PO Date'], format='%Y-%m-%d', errors='coerce'
+        )
+
+        # Step 3: Drop any invalid dates
+        filtered_data = filtered_data.dropna(subset=['PO Date'])
+
+        # Step 4: Group and sort
+        trend_data = (
+            filtered_data.groupby('PO Date')['Amount']
+            .sum()
+            .reset_index()
+            .sort_values('PO Date')
+        )
+
+        
+
+        # Step 6: Plot
+        fig = px.line(
+            trend_data, 
+            x='PO Date', 
+            y='Amount', 
+            title="Purchase Amount Over Time"
+        )
         st.plotly_chart(fig)
+
     except Exception as e:
         st.error(f"Error generating purchase trends: {e}")
 else:
     st.write("No data available for the selected filters.")
-
-# Top Suppliers by Amount
-st.header("Top Suppliers by Purchase Amount")
-if not filtered_data.empty:
-    try:
-        top_suppliers = filtered_data.groupby('Supplier Name')['Amount'].sum().reset_index()
-        top_suppliers = top_suppliers.sort_values('Amount', ascending=False)
-        fig = px.bar(top_suppliers, x='Supplier Name', y='Amount', title="Top Suppliers by Purchase Amount")
-        st.plotly_chart(fig)
-    except Exception as e:
-        st.error(f"Error generating supplier data: {e}")
-else:
-    st.write("No data available for the selected filters.")
-
-# Display Filtered Data
-st.header("Filtered Purchase Data")
-try:
-    st.dataframe(filtered_data)
-except Exception as e:
-    st.error(f"Error displaying filtered data: {e}")
