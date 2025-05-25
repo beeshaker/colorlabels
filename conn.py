@@ -6,7 +6,7 @@ import pandas as pd
 class MySQLDatabase:
     def __init__(self):
         """Initialize database connection settings."""
-        
+        """
         
         self.host = "localhost"
         self.user = "root"
@@ -25,7 +25,7 @@ class MySQLDatabase:
         self.conn = None
         self.cursor = None
         
-        """
+        
 
     def connect(self):
         """Establish a connection to the database."""
