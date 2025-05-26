@@ -56,7 +56,7 @@ class MySQLDatabase:
         self.connect()
         if not self.conn:
             return pd.DataFrame()  # Return an empty DataFrame if connection fails
-        query = "SELECT salesperson_name, client_name, month_year, total_amount FROM sales;"
+        query = "SELECT salesperson_name, client_name, month_year, total_amount FROM sales_by_person;"
         return pd.read_sql(query, self.conn)
 
     def fetch_all_clients(self):
@@ -64,7 +64,7 @@ class MySQLDatabase:
         self.connect()
         if not self.conn:
             return pd.DataFrame()  # Return an empty DataFrame if connection fails
-        query = "SELECT DISTINCT client_name FROM sales ORDER BY client_name;"
+        query = "SELECT DISTINCT client_name FROM sales_by_person ORDER BY client_name;"
         return pd.read_sql(query, self.conn)
 
     def fetch_all_salespersons(self):
@@ -72,7 +72,7 @@ class MySQLDatabase:
         self.connect()
         if not self.conn:
             return pd.DataFrame()  # Return an empty DataFrame if connection fails
-        query = "SELECT DISTINCT salesperson_name FROM sales ORDER BY salesperson_name;"
+        query = "SELECT DISTINCT salesperson_name FROM sales_by_person ORDER BY salesperson_name;"
         return pd.read_sql(query, self.conn)
 
     def fetch_client_sales(self, client_name):
@@ -82,7 +82,7 @@ class MySQLDatabase:
             return pd.DataFrame()  # Return an empty DataFrame if connection fails
         query = f"""
             SELECT month_year, SUM(total_amount) AS total_sales
-            FROM sales
+            FROM sales_by_person
             WHERE client_name = '{client_name}'
             GROUP BY month_year
             ORDER BY STR_TO_DATE(month_year, '%y-%b');
@@ -96,7 +96,7 @@ class MySQLDatabase:
             return pd.DataFrame()  # Return an empty DataFrame if connection fails
         query = f"""
             SELECT month_year, SUM(total_amount) AS total_sales
-            FROM sales
+            FROM sales_by_person
             WHERE salesperson_name = '{salesperson_name}'
             GROUP BY month_year
             ORDER BY STR_TO_DATE(month_year, '%y-%b');
@@ -110,7 +110,7 @@ class MySQLDatabase:
             return 0  # Return 0 if connection fails
         query = f"""
             SELECT SUM(total_amount) AS total_sales
-            FROM sales
+            FROM sales_by_person
             WHERE client_name = '{client_name}';
         """
         result = pd.read_sql(query, self.conn)
@@ -123,7 +123,7 @@ class MySQLDatabase:
             return 0  # Return 0 if connection fails
         query = f"""
             SELECT SUM(total_amount) AS total_sales
-            FROM sales
+            FROM sales_by_person
             WHERE salesperson_name = '{salesperson_name}';
         """
         result = pd.read_sql(query, self.conn)
@@ -136,7 +136,7 @@ class MySQLDatabase:
             return pd.DataFrame()  # Return an empty DataFrame if connection fails
         query = f"""
             SELECT salesperson_name, client_name, month_year, total_amount
-            FROM sales
+            FROM sales_by_person
             WHERE YEAR(STR_TO_DATE(month_year, '%y-%b')) = {year};
         """
         return pd.read_sql(query, self.conn)
